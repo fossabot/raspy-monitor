@@ -1,28 +1,38 @@
+from sqlite3.dbapi2 import connect
 from flask import Flask, render_template, send_from_directory, redirect
 from flask_socketio import SocketIO, emit
 from os import environ, path
-import modules.PiStats as p
+from flask_apscheduler import APScheduler
+from modules.PiDB import PiDB
+from modules.PiStats import PiStats
 
 
 app = Flask(__name__, template_folder='html', static_folder='html')
 socketio = SocketIO(app)
+scheduler = APScheduler()
+scheduler.api_enabled = True
+scheduler.init_app(app)
+scheduler.start()
+
+
+if 'DB_PATH' in environ:
+    db_path = environ['DB_PATH']
+else: 
+    db_path = 'raspy_monitor.db'
+pd = PiDB(db_path)
+pd.initDb()
+
+
+if 'ROOT_PATH' in environ:
+    root_path = environ['ROOT_PATH']
+else:
+    root_path = "/"
+ps = PiStats(root_path)
 
 
 @app.route('/')
 def index():
     return redirect('/home')
-
-
-@socketio.on('data')
-def helloSocket(res):
-    emit('data', {
-        'system': p.system(),
-        'time': p.time(),
-        'memory': p.memory(),
-        'cpu': p.cpu(),
-        'netusage': p.netUsage(),
-        'diskusage': p.diskUsage()
-    })
 
 
 @app.route('/home')
@@ -36,6 +46,23 @@ def lib(url):
         return send_from_directory('html', url)
     else:
         return send_from_directory('html', '404.html'), 404
+
+
+@socketio.on('data')
+def emitData(res):
+    emit('data', {
+        'system': ps.system(),
+        'time': ps.time(),
+        'memory': ps.memory(),
+        'cpu': ps.cpu(),
+        'netusage': ps.netUsage(),
+        'diskusage': ps.diskUsage()
+    })
+
+
+@scheduler.task('cron', id='data_store_job', second='*/5')
+def dataStoreJob():
+    print('Test')
 
 
 if __name__ == '__main__':
