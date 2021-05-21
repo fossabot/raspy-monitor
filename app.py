@@ -21,6 +21,7 @@ else:
     db_path = 'raspy_monitor.db'
 pd = PiDB(db_path)
 pd.initDb()
+pd.close()
 
 
 if 'ROOT_PATH' in environ:
@@ -62,7 +63,28 @@ def emitData(res):
 
 @scheduler.task('cron', id='data_store_job', second='*/5')
 def dataStoreJob():
-    print('Test')
+    pd = PiDB(db_path)
+    netusage_data = ps.netUsage()
+    diskusage_data = ps.diskUsage()
+    netusage_id = pd.insertIntoNetUsage(
+        r_total=netusage_data['received_total'],
+        s_total=netusage_data['sent_total'],
+        interfaces=netusage_data['interfaces']
+    )
+    diskusage_id = pd.insertIntoDiskUsage(
+        usage_total=diskusage_data['used_total'],
+        total_total=diskusage_data['total_total'],
+        paths=diskusage_data['paths']
+    )
+    cpu_data = ps.cpu()
+    memory_data = ps.memory()
+    pd.insertIntoStatistics(
+        mem_used=memory_data['memory']['used'], mem_total=memory_data['memory']['total'],
+        swap_used=memory_data['swap']['used'], swap_total=memory_data['swap']['total'],
+        load_one=cpu_data['load']['last_minute'], load_five=cpu_data['load']['last_five_minutes'],
+        load_fifteen=cpu_data['load']['last_fifteen_minutes'], temp=cpu_data['temp'],
+        diskusage_id=diskusage_id, netusage_id=netusage_id
+    )
 
 
 if __name__ == '__main__':

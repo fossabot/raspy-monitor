@@ -101,8 +101,9 @@ class PiStats:
     def netUsage(self):
         try:
             net_list = []
-            sent_total = 0
-            received_total = 0
+            s_total = 0
+            r_total = 0
+
             net_interfaces = listdir(self.root_path + 'sys/class/net')
             if 'IGNORE_INTERFACES' in environ:
                 ignored_interfaces = environ['IGNORE_INTERFACES'].split()
@@ -116,10 +117,10 @@ class PiStats:
                     r_bytes = int(int(r_file.read().replace('\n', '')) / 1048576)
                     s_file.close()
                     r_file.close()
-                    sent_total += s_bytes
-                    received_total += r_bytes
+                    s_total += s_bytes
+                    r_total += r_bytes
                     net_list.append({'name': i, 'sent': s_bytes, 'received': r_bytes})
-            return {'interfaces': net_list, 'sent_total': sent_total, 'received_total': received_total}
+            return {'interfaces': net_list, 'sent_total': s_total, 'received_total': r_total}
         except FileNotFoundError as e:
             print('Error when trying to access resources, is the $self.root_path correct?', file=stderr)
             print(str(e))
