@@ -27,7 +27,7 @@ def helloSocket(res):
 
 @app.route('/home')
 def home():
-    return render_template('home.html')
+    return render_template('home.html', debug='DEBUG' in environ)
 
 
 @app.route('/<path:url>')
