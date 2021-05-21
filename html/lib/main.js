@@ -54,7 +54,7 @@ const vm = new Vue({
         }
     },
     methods: {
-        changeNav: function(e){            
+        changeNav: function(e){
             this.section = e.target.id.replace('-button', '')
         },
         dataUpdate: function(res){
@@ -73,15 +73,22 @@ const vm = new Vue({
             this.api.cpu = res.cpu;
             this.api.netusage = res.netusage;
             this.api.diskusage = res.diskusage;  
+        },
+        uptimeUpdate: function(){
+            this.uptime.seconds += (this.uptime.seconds != 59) || -59;
+            this.uptime.minutes += (this.uptime.seconds == 0) + ((this.uptime.minutes == 59 && this.uptime.seconds == 0) * -60 )
+            this.uptime.hours += (this.uptime.minutes == 0 && this.uptime.seconds == 0) + ((this.uptime.hours == 23 && this.uptime.minutes == 0) * -24 )
+            this.uptime.days += (this.uptime.hours == 0 && this.uptime.minutes == 0 && this.uptime.seconds == 0)
         }
     },
     created: function(){
         const socket = io();
-        socket.emit('data', 'all');        
+        socket.emit('data', 'all');    
+        socket.on('data', this.dataUpdate);
+        this.uptimeJob = setInterval(this.uptimeUpdate, 1000);
         this.fetchJob = setInterval(function(){
             socket.emit('data', 'all');
         }, 5000);
-        socket.on('data', this.dataUpdate);
     },
     destroyed: function(){
         clearInterval(this.fetchJob)
