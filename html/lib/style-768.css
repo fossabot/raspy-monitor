@@ -1,0 +1,29 @@
+@media(max-width: 768px) {
+    body {
+        margin-left: 0;
+        height: calc(100vh - var(--nav-height));
+        margin-bottom: var(--nav-height);
+    }
+
+    .navigation {
+        top: unset;
+        bottom: 0;
+        height: var(--nav-height);
+        width: 100%;
+    }
+
+    .navigation > .navigation-list {
+        display: flex;
+        align-items: center;
+        height: 100%;
+    }
+
+    .navigation > .navigation-list > .navigation-button {
+        justify-content: center;
+        height: 100%;
+    }
+
+    .navigation > .navigation-list > .navigation-button > .material-icons-round {
+        margin: 0 16px 0 0;
+    }
+}

@@ -1,0 +1,287 @@
+@import url('https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
+
+*, *::after, *::before {
+    font-family: Dosis, sans-serif;
+    box-sizing: border-box;
+}
+
+button, div, span, a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --bg-0: #2e3440;
+    --bg-1: #414755;
+    --fg-0: #d8dee9;
+    --fg-1: #e5e9f0;
+    --col-1: #bf616a;
+    --col-2: #a3be8c;
+    --col-3: #ebcb8b;
+    --col-4: #81a1c1;
+    --col-5: #b48ead;
+    --col-6: #88c0d0;
+    --accent: #81a1c1;
+    --accent-tr: #81a1c155;
+    --nav-width: 256px;
+    --nav-height: 64px;
+}
+
+.material-icons-round {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+html, body {
+    margin: 0;
+    background-color: var(--bg-0);
+    color: var(--fg-0);
+    overflow: hidden;
+}
+
+body {
+    margin-left: var(--nav-width);
+}
+
+.container, .body {
+    height: 100%;
+}
+
+.navigation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    width: var(--nav-width);
+    background-color: var(--bg-1);
+    box-shadow: 0 0 16px #00000044;
+    z-index: 10;
+}
+
+.navigation > .navigation-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.navigation > .navigation-list > .navigation-button {
+    display: flex;
+    align-items: center;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 20px;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    width: 100%;
+    transition: 300ms color;
+}
+
+.navigation > .navigation-list > .navigation-button > .material-icons-round {
+    margin: 16px;
+    transition: 300ms color;
+}
+
+.navigation > .navigation-list > .navigation-button:hover {
+    color: var(--fg-1);
+}
+
+.navigation > .navigation-list > .navigation-button:hover > .material-icons-round {
+    color: var(--accent);
+}
+
+.navigation > .navigation-list > .navigation-button.selected {
+    color: var(--fg-1);
+    font-weight: 700;
+}
+
+.navigation > .navigation-list > .navigation-button.selected > .material-icons-round {
+    color: var(--accent);
+}
+
+.body-section {
+    display: none;
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.body-section::-webkit-scrollbar {
+    width: 10px;
+}
+
+.body-section::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 2px;
+}
+
+.body-section.selected {
+    display: block;    
+}
+
+.home-card {
+    margin: 16px;
+    background-color: var(--bg-1);
+    border-radius: 4px;
+    padding: 16px;
+    box-shadow: 0 0 8px #00000011;
+}
+
+.home-card-title {
+    font-weight: 700;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    color: var(--fg-1);
+}
+
+.home-card-title > .material-icons-round {
+    margin-right: 12px;
+    color: var(--accent);
+    font-size: 32px
+}
+
+.home-card-content {
+    margin-top: 16px;
+    font-size: 16px;
+}
+
+.home-card-content > * {
+    margin: 8px 0;
+}
+
+.home-card-content-name {
+    font-weight: 700;
+    color: var(--fg-1);
+}
+
+.cpu-bar, .disk-bar {
+    width: 100%;
+    height: 24px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    background-color: var(--accent-tr);
+    position: relative;
+    overflow: hidden;
+}
+
+.cpu-bar-fill, .disk-bar-fill {
+    position: absolute;
+    content: ">";
+    color: transparent;
+    left: 0;
+    background-color: var(--accent);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;    
+    border-radius: 2px;
+}
+
+.cpu-bar-fill::after {
+    content: attr(percentage) "%";
+    color: var(--fg-1);
+    position: absolute;
+    left: 8px;
+}
+
+.disk-bar-fill::after {
+    white-space : nowrap;
+    content: attr(used) " MiB / " attr(total) " MiB";
+    color: var(--fg-1);
+    position: absolute;
+    left: 8px;
+}
+
+.disk-card {
+    margin: 0;
+}
+
+.disk-card > * {
+    margin: 8px 0;
+}
+
+#cpu-info > .home-card-content {
+    display: grid;
+}
+
+#disk-info > .home-card-content {
+    display: grid;
+}
+
+#uptime-info > .home-card-content {
+    display: grid;
+    grid-template-columns: repeat(4, 25%);
+}
+
+#memory-info > .home-card-content {
+    display: grid;
+}
+
+#machine-info > .home-card-content {
+    display: grid;
+    grid-template-columns: 120px auto;
+}
+
+.uptime-card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 72px;
+    color: var(--fg-1);
+    position: relative;
+    margin: 0;
+    padding-bottom: 32px;
+}
+
+.uptime-card::after {
+    content: attr(label);
+    font-size: 20px;
+    position: absolute;
+    bottom: 20px;
+    color: var(--fg-0);
+}
+
+#networking-info .home-card-content {
+    display: grid;
+}
+
+.network {
+    display: grid;
+    grid-template-columns: 120px auto auto;
+    margin: 8px 0;
+}
+
+.network-down, .network-up {
+    display: flex;
+    align-items: center;
+}
+
+.network-down::before {
+    content: "file_download";
+    font-family: "Material Icons Round";
+    font-size: 24px;
+    margin-right: 4px;
+    color: var(--accent);
+}
+
+.network-up::before {
+    content: "file_upload";
+    font-family: "Material Icons Round";
+    font-size: 24px;
+    margin-right: 4px;
+    color: var(--accent);
+}
+
+.network-down::after, .network-up::after {
+    content: "MiB";
+    margin-left: 4px;
+}
