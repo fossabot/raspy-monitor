@@ -83,7 +83,7 @@ const vm = new Vue({
     },
     created: function(){
         const socket = io();
-        socket.emit('data', 'all');    
+        socket.emit('data', 'all');
         socket.on('data', this.dataUpdate);
         this.uptimeJob = setInterval(this.uptimeUpdate, 1000);
         this.fetchJob = setInterval(function(){

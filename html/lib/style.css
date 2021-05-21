@@ -202,6 +202,7 @@ body {
 }
 
 .disk-card {
+    display: grid;
     margin: 0;
 }
 
