@@ -1,7 +1,7 @@
-from os import uname, listdir, environ
+from os import uname, listdir, environ, cpu_count, statvfs
 from datetime import datetime
-from re import search
-from psutil import virtual_memory, swap_memory, boot_time, getloadavg, disk_usage, cpu_count
+from re import A, search, sub
+from psutil import disk_usage
 from sys import stderr
 
 
@@ -43,58 +43,89 @@ class PiStats:
             print("Some data can't be parsed, currently only supports parsing data from Raspberry Pi.", file=stderr)
             print(str(e))
         except FileNotFoundError as e:
-            print('Error when trying to access resources, is the $self.root_path correct?', file=stderr)
+            print('Error when trying to access resources, is the ROOT_PATH correct?', file=stderr)
             print(str(e))
 
 
     def time(self):
-        date = datetime.now()
-        return {
-            'date': {
-                'year': date.year,
-                'month': date.month,
-                'weekday': date.isoweekday(),
-                'day': date.day,
-                'hour': date.hour,
-                'minute': date.minute,
-                'second': date.second
-            },
-            'uptime': int(date.timestamp() - boot_time())
-        }
+        try:
+            date = datetime.now()
+            uptime_file = open(self.root_path + 'proc/uptime')
+            uptime = int(float(uptime_file.read().split()[0]))
+            uptime_file.close()
+            return {
+                'date': {
+                    'year': date.year,
+                    'month': date.month,
+                    'weekday': date.isoweekday(),
+                    'day': date.day,
+                    'hour': date.hour,
+                    'minute': date.minute,
+                    'second': date.second
+                },
+                'uptime': uptime
+            }
+        except FileNotFoundError as e:
+            print('Error when trying to access resources, is the ROOT_PATH correct?', file=stderr)
+            print(str(e))
 
 
     def memory(self):
-        memory = virtual_memory()
-        swap = swap_memory()
-        return {
-            'memory': {
-                'total': int(memory.total / 1048576),
-                'used': int(memory.used / 1048576)
-            },
-            'swap': {
-                'total': int(swap.total / 1048576),
-                'used': int(swap.used / 1048576)
+        try:
+            mem_info_file = open(self.root_path + 'proc/meminfo')
+            mem_info_lines = mem_info_file.readlines()
+            mem_info_file.close()
+            for line in mem_info_lines:
+                if search('^MemTotal:', line):
+                    mem_total = int(sub('[a-zA-Z\ :\\n]', '', line))
+                elif search('^MemFree:', line):
+                    mem_free = int(sub('[a-zA-Z\ :\\n]', '', line))
+                elif search('^Buffers:', line):
+                    mem_buffers = int(sub('[a-zA-Z\ :\\n]', '', line))
+                elif search('^Cached:', line):
+                    mem_cached = int(sub('[a-zA-Z\ :\\n]', '', line))
+                elif search('^SwapCached:', line):
+                    swap_cached = int(sub('[a-zA-Z\ :\\n]', '', line))
+                elif search('^SwapTotal:', line):
+                    swap_total = int(sub('[a-zA-Z\ :\\n]', '', line))
+                elif search('^SwapFree:', line):
+                    swap_free = int(sub('[a-zA-Z\ :\\n]', '', line))
+                    break
+            mem_used = mem_total - (mem_free + mem_buffers + mem_cached)
+            swap_used = swap_total - (swap_free + swap_cached)
+            return {
+                'memory': {
+                    'total': int(mem_total / 1024),
+                    'used': int(mem_used / 1024)
+                },
+                'swap': {
+                    'total': int(swap_total / 1024),
+                    'used': int(swap_used / 1024)
+                }
             }
-        }
-
+        except FileNotFoundError as e:
+            print('Error when trying to access resources, is the ROOT_PATH correct?', file=stderr)
+            print(str(e))
 
     def cpu(self):
         try:
             cpu_num = cpu_count()
-            load_avg = getloadavg()
+            loadavg_file = open(self.root_path + 'proc/loadavg')
+            loadavg = loadavg_file.read().split()
+            loadavg_file.close()
             temp_file = open(self.root_path + 'sys/devices/virtual/thermal/thermal_zone0/temp')
             temp = int(int(temp_file.read()) / 1000)
             temp_file.close()
             return {
                 'temp': temp,
                 'load': {
-                    'last_minute': round(load_avg[0] * 100 / cpu_num, 2),
-                    'last_five_minutes': round(load_avg[1] * 100 / cpu_num, 2),
-                    'last_fifteen_minutes': round(load_avg[2] * 100 / cpu_num, 2)
+                    'last_minute': round(float(loadavg[0]) * 100 / cpu_num, 2),
+                    'last_five_minutes': round(float(loadavg[1]) * 100 / cpu_num, 2),
+                    'last_fifteen_minutes': round(float(loadavg[2]) * 100 / cpu_num, 2)
                 }
             }
         except FileNotFoundError as e:
-            print('Error when trying to access resources, is the $self.root_path correct?', file=stderr)
+            print('Error when trying to access resources, is the ROOT_PATH correct?', file=stderr)
             print(str(e))
 
 
@@ -122,7 +153,7 @@ class PiStats:
                     net_list.append({'name': i, 'sent': s_bytes, 'received': r_bytes})
             return {'interfaces': net_list, 'sent_total': s_total, 'received_total': r_total}
         except FileNotFoundError as e:
-            print('Error when trying to access resources, is the $self.root_path correct?', file=stderr)
+            print('Error when trying to access resources, is the ROOT_PATH correct?', file=stderr)
             print(str(e))
 
 
@@ -135,9 +166,12 @@ class PiStats:
         else:
             mount_points = ['/']
         for i in mount_points:
-            data = disk_usage(self.root_path + i)
-            used = int(data.used / 1048576)
-            total = int(data.total / 1048576)
+            data = statvfs(self.root_path + i)
+            total_raw = data.f_blocks * data.f_frsize
+            available_raw = data.f_bavail * data.f_frsize
+            used_raw = total_raw - available_raw
+            total = int(total_raw / 1048576)
+            used = int(used_raw / 1048576)
             used_total += used
             total_total += total
             disk_list.append({'mount_point': i, 'used': used, 'total': total})
