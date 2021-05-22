@@ -60,6 +60,15 @@ def emitData(res):
         'diskusage': ps.diskUsage()
     })
 
+@socketio.on('statistics')
+def emitStatistics(res):
+    pd = PiDB(db_path)
+    if res == '1 hour':
+        statistics = pd.getLastHourStatistics()
+    emit('statistics', {
+        'data': statistics
+    })
+
 
 @scheduler.task('cron', id='data_store_job', second='*/5')
 def dataStoreJob():

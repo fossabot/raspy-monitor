@@ -74,6 +74,9 @@ const vm = new Vue({
             this.api.netusage = res.netusage;
             this.api.diskusage = res.diskusage;  
         },
+        statisticsUpdate: function(res){
+            console.log(res)
+        },
         uptimeUpdate: function(){
             this.uptime.seconds += (this.uptime.seconds != 59) || -59;
             this.uptime.minutes += (this.uptime.seconds == 0) + ((this.uptime.minutes == 59 && this.uptime.seconds == 0) * -60 )
@@ -84,7 +87,9 @@ const vm = new Vue({
     created: function(){
         const socket = io();
         socket.emit('data', 'all');
+        socket.emit('statistics', '1 hour');
         socket.on('data', this.dataUpdate);
+        socket.on('statistics', this.statisticsUpdate)
         this.uptimeJob = setInterval(this.uptimeUpdate, 1000);
         this.fetchJob = setInterval(function(){
             socket.emit('data', 'all');
