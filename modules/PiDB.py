@@ -12,26 +12,25 @@ class PiDB:
     def initDb(self):
         self.query('''
             CREATE TABLE IF NOT EXISTS diskusage(
-                statistics_id INTEGER,
+                statistics_t INTEGER,
                 path_name TEXT(16),
                 used INTEGER(2),
                 total INTEGER(2),
-                FOREIGN KEY(statistics_id) REFERENCES statistics(id)
+                FOREIGN KEY(statistics_t) REFERENCES statistics(t)
             );
         ''')
         self.query('''
             CREATE TABLE IF NOT EXISTS netusage(
-                statistics_id INTEGER,
+                statistics_t INTEGER,
                 interface_name TEXT(16),
                 r INTEGER(2),
                 s INTEGER(2),
-                FOREIGN KEY(statistics_id) REFERENCES statistics(id)
+                FOREIGN KEY(statistics_t) REFERENCES statistics(t)
             );
         ''')
         self.query('''
             CREATE TABLE IF NOT EXISTS statistics(
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                t INTEGER NOT NULL,
+                t INTEGER PRIMARY KEY NOT NULL,
                 mem_used INTEGER(2) NOT NULL,
                 mem_total INTEGER(2) NOT NULL,
                 swap_used INTEGER(2) NOT NULL,
@@ -53,17 +52,18 @@ class PiDB:
         for path in data['paths']:
             self.query('''
                 INSERT INTO diskusage VALUES(?, ?, ?, ?)
-            ''', (self.current_statistic_id, path['mount_point'], path['used'], path['total']))
+            ''', (self.t, path['mount_point'], path['used'], path['total']))
 
     
     def insertIntoNetUsage(self, **data):        
         for interface in data['interfaces']:
             self.query('''
                 INSERT INTO netusage VALUES(?, ?, ?, ?)
-            ''', (self.current_statistic_id, interface['name'], interface['received'], interface['sent']))
+            ''', (self.t, interface['name'], interface['received'], interface['sent']))
 
 
     def insertIntoStatistics(self, **data):
+        self.t = int(time())
         self.query('''
             INSERT INTO statistics(
                 t,
@@ -75,16 +75,13 @@ class PiDB:
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            int(time()),
+            self.t,
             data['mem_used'], data['mem_total'],
             data['swap_used'], data['swap_total'],
             data['load_one'], data['load_five'], data['load_fifteen'], data['temp'],
             data['disk_used_total'], data['disk_total_total'],
             data['net_r_total'], data['net_s_total']
         ))
-        self.current_statistic_id = self.conn.execute('''
-            SELECT id FROM statistics ORDER BY id DESC LIMIT 1
-        ''').fetchone()[0]
 
 
     def getLastHourStatistics(self):

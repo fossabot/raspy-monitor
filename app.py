@@ -87,6 +87,7 @@ def dataStoreJob():
     )
     pd.insertIntoNetUsage(interfaces=netusage_data['interfaces'])
     pd.insertIntoDiskUsage(paths=diskusage_data['paths'])
+    pd.close()
     
 
 if __name__ == '__main__':
