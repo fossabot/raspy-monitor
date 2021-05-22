@@ -66,16 +66,6 @@ def dataStoreJob():
     pd = PiDB(db_path)
     netusage_data = ps.netUsage()
     diskusage_data = ps.diskUsage()
-    netusage_id = pd.insertIntoNetUsage(
-        r_total=netusage_data['received_total'],
-        s_total=netusage_data['sent_total'],
-        interfaces=netusage_data['interfaces']
-    )
-    diskusage_id = pd.insertIntoDiskUsage(
-        usage_total=diskusage_data['used_total'],
-        total_total=diskusage_data['total_total'],
-        paths=diskusage_data['paths']
-    )
     cpu_data = ps.cpu()
     memory_data = ps.memory()
     pd.insertIntoStatistics(
@@ -83,9 +73,12 @@ def dataStoreJob():
         swap_used=memory_data['swap']['used'], swap_total=memory_data['swap']['total'],
         load_one=cpu_data['load']['last_minute'], load_five=cpu_data['load']['last_five_minutes'],
         load_fifteen=cpu_data['load']['last_fifteen_minutes'], temp=cpu_data['temp'],
-        diskusage_id=diskusage_id, netusage_id=netusage_id
+        disk_used_total=diskusage_data['used_total'], disk_total_total=diskusage_data['total_total'],
+        net_r_total=netusage_data['received_total'], net_s_total=netusage_data['sent_total']
     )
-
+    pd.insertIntoNetUsage(interfaces=netusage_data['interfaces'])
+    pd.insertIntoDiskUsage(paths=diskusage_data['paths'])
+    
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', debug='DEBUG' in environ)
