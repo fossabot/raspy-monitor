@@ -1,7 +1,6 @@
 from os import uname, listdir, environ, cpu_count, statvfs
 from datetime import datetime
-from re import A, search, sub
-from psutil import disk_usage
+from re import search, sub
 from sys import stderr
 
 
