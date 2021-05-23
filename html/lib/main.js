@@ -74,28 +74,22 @@ const vm = new Vue({
             this.api.netusage = res.netusage;
             this.api.diskusage = res.diskusage;  
         },
-        statisticsUpdate: function(res){
-            console.log(res)
-        },
-        uptimeUpdate: function(){
+        uptimeJob: function(){
             this.uptime.seconds += (this.uptime.seconds != 59) || -59;
             this.uptime.minutes += (this.uptime.seconds == 0) + ((this.uptime.minutes == 59 && this.uptime.seconds == 0) * -60 )
             this.uptime.hours += (this.uptime.minutes == 0 && this.uptime.seconds == 0) + ((this.uptime.hours == 23 && this.uptime.minutes == 0) * -24 )
             this.uptime.days += (this.uptime.hours == 0 && this.uptime.minutes == 0 && this.uptime.seconds == 0)
+        },
+        backgroundJob: function(){
+            this.socket.emit(this.seconds, '');
         }
     },
     created: function(){
-        const socket = io();
-        socket.emit('data', 'all');
-        socket.emit('statistics', '1 hour');
-        socket.on('data', this.dataUpdate);
-        socket.on('statistics', this.statisticsUpdate)
-        this.uptimeJob = setInterval(this.uptimeUpdate, 1000);
-        this.fetchJob = setInterval(function(){
-            socket.emit('data', 'all');
-        }, 5000);
+        this.socket = io();
+        this.backgroundJobInterval = setInterval(this.backgroundJob, 5000);
+        this.uptimeJobInterval = setInterval(this.uptimeUpdate, 1000);
     },
     destroyed: function(){
-        clearInterval(this.fetchJob)
+        clearInterval(this.fetchJob);
     }
 });

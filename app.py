@@ -49,7 +49,7 @@ def lib(url):
         return send_from_directory('html', '404.html'), 404
 
 
-@socketio.on('data')
+@socketio.on('home')
 def emitData(res):
     emit('data', {
         'system': ps.system(),
@@ -91,4 +91,4 @@ def dataStoreJob():
     
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', debug='DEBUG' in environ)
+    socketio.run(app, host='0.0.0.0', debug='DEBUG' in environ, use_reloader=False)

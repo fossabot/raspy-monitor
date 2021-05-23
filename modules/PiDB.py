@@ -6,6 +6,7 @@ class PiDB:
     def __init__(self, path):
         self.conn = db.connect(path, isolation_level=None)
         self.query = self.conn.execute
+        self.multiQuery = self.conn.executemany
         self.close = self.conn.close
 
 
@@ -45,25 +46,36 @@ class PiDB:
                 net_s_total INTEGER(2)
             );
         ''')
-        self.conn.close()
+        self.close()
 
 
     def insertIntoDiskUsage(self, **data):
+        values = []
         for path in data['paths']:
-            self.query('''
-                INSERT INTO diskusage VALUES(?, ?, ?, ?)
-            ''', (self.t, path['mount_point'], path['used'], path['total']))
+            values.append((self.t, path['mount_point'], path['used'], path['total']))
+        
+        self.multiQuery("INSERT INTO diskusage VALUES(?, ?, ?, ?)", values)
 
     
     def insertIntoNetUsage(self, **data):        
+        values = []
         for interface in data['interfaces']:
-            self.query('''
-                INSERT INTO netusage VALUES(?, ?, ?, ?)
-            ''', (self.t, interface['name'], interface['received'], interface['sent']))
+            values.append((self.t, interface['name'], interface['received'], interface['sent']))
+        
+        self.multiQuery("INSERT INTO netusage VALUES(?, ?, ?, ?)", values)
 
 
     def insertIntoStatistics(self, **data):
         self.t = int(time())
+        values = (
+            self.t,
+            data['mem_used'], data['mem_total'],
+            data['swap_used'], data['swap_total'],
+            data['load_one'], data['load_five'], data['load_fifteen'], data['temp'],
+            data['disk_used_total'], data['disk_total_total'],
+            data['net_r_total'], data['net_s_total']
+        )
+        print(values)
         self.query('''
             INSERT INTO statistics(
                 t,
@@ -74,14 +86,7 @@ class PiDB:
                 net_r_total, net_s_total
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            self.t,
-            data['mem_used'], data['mem_total'],
-            data['swap_used'], data['swap_total'],
-            data['load_one'], data['load_five'], data['load_fifteen'], data['temp'],
-            data['disk_used_total'], data['disk_total_total'],
-            data['net_r_total'], data['net_s_total']
-        ))
+        ''', values)
 
 
     def getLastHourStatistics(self):
