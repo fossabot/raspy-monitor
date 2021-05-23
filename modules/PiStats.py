@@ -11,7 +11,7 @@ class PiStats:
 
     def system(self):
         try:
-            cpu_info_file = open(self.root_path + 'proc/cpuinfo')
+            cpu_info_file = open(self.root_path + '/proc/cpuinfo')
             cpu_info_lines = cpu_info_file.readlines()
             cpu_info_file.close()
 
@@ -20,7 +20,7 @@ class PiStats:
                     cpu_name = line.replace('Hardware\t: ', '').replace('\n', '')
                 elif search('Model', line):
                     model = line.replace('Model\t\t: ', '').replace('\n', '')
-            os_release_file = open(self.root_path + 'etc/os-release')
+            os_release_file = open(self.root_path + '/etc/os-release')
             for line in os_release_file.readlines():
                 if search('PRETTY_NAME', line):
                     os_name = line.replace('"', '').replace('PRETTY_NAME=', '').replace('\n', '')
@@ -49,7 +49,7 @@ class PiStats:
     def time(self):
         try:
             date = datetime.now()
-            uptime_file = open(self.root_path + 'proc/uptime')
+            uptime_file = open(self.root_path + '/proc/uptime')
             uptime = int(float(uptime_file.read().split()[0]))
             uptime_file.close()
             return {
@@ -71,7 +71,7 @@ class PiStats:
 
     def memory(self):
         try:
-            mem_info_file = open(self.root_path + 'proc/meminfo')
+            mem_info_file = open(self.root_path + '/proc/meminfo')
             mem_info_lines = mem_info_file.readlines()
             mem_info_file.close()
             for line in mem_info_lines:
@@ -109,10 +109,10 @@ class PiStats:
     def cpu(self):
         try:
             cpu_num = cpu_count()
-            loadavg_file = open(self.root_path + 'proc/loadavg')
+            loadavg_file = open(self.root_path + '/proc/loadavg')
             loadavg = loadavg_file.read().split()
             loadavg_file.close()
-            temp_file = open(self.root_path + 'sys/devices/virtual/thermal/thermal_zone0/temp')
+            temp_file = open(self.root_path + '/sys/devices/virtual/thermal/thermal_zone0/temp')
             temp = int(int(temp_file.read()) / 1000)
             temp_file.close()
             return {
@@ -134,15 +134,15 @@ class PiStats:
             s_total = 0
             r_total = 0
 
-            net_interfaces = listdir(self.root_path + 'sys/class/net')
+            net_interfaces = listdir(self.root_path + '/sys/class/net')
             if 'IGNORE_INTERFACES' in environ:
                 ignored_interfaces = environ['IGNORE_INTERFACES'].split()
             else:
                 ignored_interfaces = ['lo']
             for i in net_interfaces:
                 if i not in ignored_interfaces:
-                    s_file = open(self.root_path + 'sys/class/net/' + i + '/statistics/tx_bytes')
-                    r_file = open(self.root_path + 'sys/class/net/' + i + '/statistics/rx_bytes')
+                    s_file = open(self.root_path + '/sys/class/net/' + i + '/statistics/tx_bytes')
+                    r_file = open(self.root_path + '/sys/class/net/' + i + '/statistics/rx_bytes')
                     s_bytes = int(int(s_file.read().replace('\n', '')) / 1048576)
                     r_bytes = int(int(r_file.read().replace('\n', '')) / 1048576)
                     s_file.close()

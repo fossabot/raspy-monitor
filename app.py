@@ -5,9 +5,10 @@ from os import environ, path
 from flask_apscheduler import APScheduler
 from modules.PiDB import PiDB
 from modules.PiStats import PiStats
+from signal import SIGINT, signal
 
 
-app = Flask(__name__, template_folder='html', static_folder='html')
+app = Flask(__name__, template_folder='public', static_folder='public')
 socketio = SocketIO(app)
 scheduler = APScheduler()
 scheduler.api_enabled = True
@@ -36,22 +37,22 @@ def index():
     return redirect('/home')
 
 
-@app.route('/home')
-def home():
-    return render_template('home.html', debug='DEBUG' in environ)
+@app.route('/<string:section>')
+def home(section):
+    return render_template('app.html', debug='DEBUG' in environ, section=section)
 
 
-@app.route('/<path:url>')
+@app.route('/lib/<path:url>')
 def lib(url):
-    if path.exists('html/' + url):
-        return send_from_directory('html', url)
+    if path.exists('public/lib/' + url):
+        return send_from_directory('public/lib', url)
     else:
-        return send_from_directory('html', '404.html'), 404
+        return send_from_directory('public/lib', '404.html'), 404
 
 
 @socketio.on('home')
 def emitData(res):
-    emit('data', {
+    emit('home', {
         'system': ps.system(),
         'time': ps.time(),
         'memory': ps.memory(),
@@ -60,13 +61,19 @@ def emitData(res):
         'diskusage': ps.diskUsage()
     })
 
+@socketio.on('statistics init')
+def emitStatistics(res):
+    pd = PiDB(db_path)
+    emit('statistics init', {
+        'data': pd.getLastDayStatistics()
+    })
+
+
 @socketio.on('statistics')
 def emitStatistics(res):
     pd = PiDB(db_path)
-    if res == '1 hour':
-        statistics = pd.getLastHourStatistics()
-    emit('statistics', {
-        'data': statistics
+    emit('statistics update', {
+        'data': pd.getLastStatistics()
     })
 
 
@@ -88,7 +95,19 @@ def dataStoreJob():
     pd.insertIntoNetUsage(interfaces=netusage_data['interfaces'])
     pd.insertIntoDiskUsage(paths=diskusage_data['paths'])
     pd.close()
-    
+
+
+@scheduler.task('cron', id='del_old_job', hour=0, minute=0)
+def delOldStore():
+    pd = PiDB(db_path)
+    pd.delOldStatistics()
+
+
+def stopProcess(sig, frame):
+    print("Gracefully stopping...")
+    pd.close()
+
 
 if __name__ == '__main__':
+    signal(SIGINT, stopProcess)
     socketio.run(app, host='0.0.0.0', debug='DEBUG' in environ, use_reloader=False)

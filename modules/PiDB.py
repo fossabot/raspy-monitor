@@ -13,20 +13,20 @@ class PiDB:
     def initDb(self):
         self.query('''
             CREATE TABLE IF NOT EXISTS diskusage(
-                statistics_t INTEGER,
+                t INTEGER,
                 path_name TEXT(16),
                 used INTEGER(2),
                 total INTEGER(2),
-                FOREIGN KEY(statistics_t) REFERENCES statistics(t)
+                FOREIGN KEY(t) REFERENCES statistics(t)
             );
         ''')
         self.query('''
             CREATE TABLE IF NOT EXISTS netusage(
-                statistics_t INTEGER,
+                t INTEGER,
                 interface_name TEXT(16),
                 r INTEGER(2),
                 s INTEGER(2),
-                FOREIGN KEY(statistics_t) REFERENCES statistics(t)
+                FOREIGN KEY(t) REFERENCES statistics(t)
             );
         ''')
         self.query('''
@@ -75,7 +75,6 @@ class PiDB:
             data['disk_used_total'], data['disk_total_total'],
             data['net_r_total'], data['net_s_total']
         )
-        print(values)
         self.query('''
             INSERT INTO statistics(
                 t,
@@ -89,6 +88,15 @@ class PiDB:
         ''', values)
 
 
-    def getLastHourStatistics(self):
-        return self.query("SELECT * FROM statistics WHERE t >= " + str(time() - 3600)).fetchall()
+    def getLastDayStatistics(self):
+        return self.query("SELECT * FROM statistics WHERE t >= " + str(time() - 86400)).fetchall()
+    
 
+    def getLastStatistics(self):
+        return self.query("SELECT * FROM statistics ORDER BY t DESC LIMIT 1").fetchone()
+
+
+    def delOldStatistics(self):
+        self.query("DELETE FROM netusage WHERE t < " + str(time() - 86400))
+        self.query("DELETE FROM diskusage WHERE t < " + str(time() - 86400))
+        self.query("DELETE FROM statistics WHERE t < " + str(time() - 86400))

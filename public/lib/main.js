@@ -23,7 +23,7 @@ const vm = new Vue({
     delimiters: ['[[', ']]'],
     data: {
         dataLoaded: false,
-        section: 'home',
+        section: '',
         api: {
             cpu: {
                 load: {
@@ -55,7 +55,7 @@ const vm = new Vue({
     },
     methods: {
         changeNav: function(e){
-            this.section = e.target.id.replace('-button', '')
+            this.section = e.target.id.replace('-button', '');
         },
         dataUpdate: function(res){
             if(! this.dataLoaded){
@@ -72,24 +72,38 @@ const vm = new Vue({
             this.api.memory = res.memory;
             this.api.cpu = res.cpu;
             this.api.netusage = res.netusage;
-            this.api.diskusage = res.diskusage;  
+            this.api.diskusage = res.diskusage;
         },
-        uptimeJob: function(){
+        statisticsInit: function(res){
+            console.log(res);
+            this.socket.off('statistics init');
+        },
+        statisticsUpdate: function(res){
+            console.log(res);
+        },
+        uptimeUpdate: function(){
             this.uptime.seconds += (this.uptime.seconds != 59) || -59;
             this.uptime.minutes += (this.uptime.seconds == 0) + ((this.uptime.minutes == 59 && this.uptime.seconds == 0) * -60 )
             this.uptime.hours += (this.uptime.minutes == 0 && this.uptime.seconds == 0) + ((this.uptime.hours == 23 && this.uptime.minutes == 0) * -24 )
             this.uptime.days += (this.uptime.hours == 0 && this.uptime.minutes == 0 && this.uptime.seconds == 0)
         },
         backgroundJob: function(){
-            this.socket.emit(this.seconds, '');
+            this.socket.emit(this.section, '');
         }
     },
     created: function(){
         this.socket = io();
-        this.backgroundJobInterval = setInterval(this.backgroundJob, 5000);
+        this.socket.on('home', this.dataUpdate);
+        this.socket.on('statistics init', this.statisticsInit);
+        this.socket.on('statistics update', this.statisticsUpdate);
+        this.socket.emit('home', '');
+        this.socket.emit('statistics init', '');
+        this.backgroundJob();
         this.uptimeJobInterval = setInterval(this.uptimeUpdate, 1000);
+        this.backgroundJobInterval = setInterval(this.backgroundJob, 5000);
     },
     destroyed: function(){
-        clearInterval(this.fetchJob);
+        clearInterval(this.backgroundJobInterval);
+        clearInterval(this.uptimeJobInterval);
     }
 });
