@@ -11,7 +11,9 @@ RUN set -ex; \
         raspy_monitor; \
     mkdir -p /config; \
     chown -R raspy_monitor /usr/src/app /config; \
-    pip install -r requirements.txt;
+    apt update; apt install -y gcc g++; \
+    pip install -r requirements.txt; \
+    apt purge --autoremove -y gcc g++;
 STOPSIGNAL SIGINT
 ENV DB_PATH "/config/raspy_monitor.db"
 USER raspy_monitor
