@@ -26,7 +26,7 @@ You can also use Docker or similar container solutions such as Podman, the proce
 ```sh
 docker volume create raspy-monitor
 docker run \
-    --rm -p 5000:5000 \
+    -it --rm -p 5000:5000 \
     --name raspy-monitor \
     -v raspy-monitor:/config \
     -v /:/host:ro \
