@@ -16,6 +16,6 @@ RUN set -ex; \
     [ "$(uname -m)" = "armv7l" ] && apt purge --autoremove -y gcc g++ || true;
 STOPSIGNAL SIGINT
 ENV DB_PATH "/config/raspy_monitor.db"
-COPY . .
+COPY --chown=raspy_monitor:root . .
 USER raspy_monitor
 CMD python3 app.py
