@@ -9,7 +9,7 @@ A monitoring tool for Raspberry Pi written in Python with Flask and Vue.js, curr
 
 ## Usage
 ### With Virtual Environment
-It's recommended to use virtual environment rather than installing the libraries globally.
+It's recommended to use virtual environment rather than installing the libraries globally, You'll need Python 3.9
 
 ```sh
 python3 -m venv virtualenv
