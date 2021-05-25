@@ -27,10 +27,10 @@ You can also use Docker or similar container solutions such as Podman, the proce
 docker volume create raspy-monitor
 docker run \
     --rm -p 5000:5000 \
+    --name raspy-monitor \
     -v raspy-monitor:/config \
     -v /:/host:ro \
     -e ROOT_PATH=/host \
-    -e DEBUG=1 \
     -h $(uname -n) \
     docker.io/lemniskett/raspy-monitor:latest
 ```
