@@ -1,6 +1,6 @@
 FROM docker.io/library/python:3.9-slim
 WORKDIR /usr/src/app
-COPY . .
+COPY ./requirements.txt .
 RUN set -ex; \
     useradd \
         --system \
@@ -11,10 +11,11 @@ RUN set -ex; \
         raspy_monitor; \
     mkdir -p /config; \
     chown -R raspy_monitor /usr/src/app /config; \
-    apt update; apt install -y gcc g++; \
+    [ "$(uname -m)" = "armv7l" ] && apt install -y gcc g++; \
     pip install -r requirements.txt; \
-    apt purge --autoremove -y gcc g++;
+    [ "$(uname -m)" = "armv7l" ] && apt purge --autoremove -y gcc g++ || true;
 STOPSIGNAL SIGINT
 ENV DB_PATH "/config/raspy_monitor.db"
+COPY . .
 USER raspy_monitor
 CMD python3 app.py
