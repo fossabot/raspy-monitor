@@ -5,7 +5,6 @@ from os import environ, path
 from flask_apscheduler import APScheduler
 from modules.PiDB import PiDB
 from modules.PiStats import PiStats
-from signal import SIGINT, signal
 
 
 app = Flask(__name__, template_folder='public', static_folder='public')
@@ -85,15 +84,11 @@ def dataStoreJob():
     cpu_data = ps.cpu()
     memory_data = ps.memory()
     pd.insertIntoStatistics(
-        mem_used=memory_data['memory']['used'], mem_total=memory_data['memory']['total'],
-        swap_used=memory_data['swap']['used'], swap_total=memory_data['swap']['total'],
-        load_one=cpu_data['load']['last_minute'], load_five=cpu_data['load']['last_five_minutes'],
-        load_fifteen=cpu_data['load']['last_fifteen_minutes'], temp=cpu_data['temp'],
-        disk_used_total=diskusage_data['used_total'], disk_total_total=diskusage_data['total_total'],
-        net_r_total=netusage_data['received_total'], net_s_total=netusage_data['sent_total']
+        memory=memory_data,
+        cpu=cpu_data,
+        disk=diskusage_data, 
+        net=netusage_data
     )
-    pd.insertIntoNetUsage(interfaces=netusage_data['interfaces'])
-    pd.insertIntoDiskUsage(paths=diskusage_data['paths'])
     pd.close()
 
 
@@ -103,11 +98,5 @@ def delOldStore():
     pd.delOldStatistics()
 
 
-def stopProcess(sig, frame):
-    print("Gracefully stopping...")
-    pd.close()
-
-
 if __name__ == '__main__':
-    signal(SIGINT, stopProcess)
     socketio.run(app, host='0.0.0.0', debug='DEBUG' in environ, use_reloader=False)
