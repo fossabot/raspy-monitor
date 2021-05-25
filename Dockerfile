@@ -11,7 +11,7 @@ RUN set -ex; \
         raspy_monitor; \
     mkdir -p /config; \
     chown -R raspy_monitor /usr/src/app /config; \
-    [ "$(uname -m)" = "armv7l" ] && apt install -y gcc g++; \
+    [ "$(uname -m)" = "armv7l" ] && apt update && apt install -y gcc g++; \
     pip install -r requirements.txt; \
     [ "$(uname -m)" = "armv7l" ] && apt purge --autoremove -y gcc g++ || true;
 STOPSIGNAL SIGINT
