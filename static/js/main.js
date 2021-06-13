@@ -19,8 +19,7 @@ Vue.component('memory', {
 })
 
 const vm = new Vue({
-    el: '.container',
-    delimiters: ['[[', ']]'],
+    el: '.container',    
     data: {
         dataLoaded: false,
         section: '',
