@@ -11,7 +11,6 @@
     "url": "git+https://github.com/lemniskett/raspy-monitor.git"
   },
   "author": "lemniskett",
-  "license": "LGPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/lemniskett/raspy-monitor/issues"
   },
