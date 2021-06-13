@@ -17,6 +17,7 @@
   "homepage": "https://github.com/lemniskett/raspy-monitor#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "express-es6-template-engine": "^2.2.3"
+    "express-es6-template-engine": "^2.2.3",
+    "socket.io": "^4.1.2"
   }
 }
