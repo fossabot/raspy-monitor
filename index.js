@@ -49,13 +49,36 @@ class PiStats {
             }
         }
     }
+
+    time(){
+        const uptime = parseInt(fs.readFileSync(`${this.root_path}/proc/uptime`, 'utf8').split(' ')[0]);
+        return {
+            uptime: uptime
+        }
+    }
+
+    cpu(){
+        const cpu_num = os.cpus().length;
+        const load_avg = fs.readFileSync(`${this.root_path}/proc/loadavg`, 'utf8').split(' ');
+        const temp = fs.readFileSync(`${this.root_path}/sys/devices/virtual/thermal/thermal_zone0/temp`, 'utf8') / 1000;
+        return {
+            temp: temp,
+            load: {
+                last_minute: (load_avg[0] * 100 / cpu_num).toFixed(2),
+                last_five_minutes: (load_avg[1] * 100 / cpu_num).toFixed(2),
+                last_fifteen_minutes: (load_avg[2] * 100 / cpu_num).toFixed(2)
+            }
+        }
+    }
 }
 
 const ps = new PiStats('/')
 
 const homeData = () => {
     return {
-        system: ps.system()
+        system: ps.system(),
+        time: ps.time(),
+        cpu: ps.cpu()
     }
 }
 
@@ -75,6 +98,7 @@ app.get('/:section', (req, res) => {
 
 // SocketIO
 io.on('connection', (socket) => {
+    io.emit('home', homeData());
     const home = setInterval(() => {
         io.emit('home', homeData())
     }, 1000);

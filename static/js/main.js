@@ -68,10 +68,10 @@ const vm = new Vue({
                 this.uptime.seconds = res.time.uptime - this.uptime.minutes * 60
                 this.dataLoaded = true;
             }
-            this.api.memory = res.memory;
+            //this.api.memory = res.memory;
             this.api.cpu = res.cpu;
-            this.api.netusage = res.netusage;
-            this.api.diskusage = res.diskusage;
+            //this.api.netusage = res.netusage;
+            //this.api.diskusage = res.diskusage;            
         },
         uptimeUpdate: function(){
             this.uptime.seconds += (this.uptime.seconds != 59) || -59;
