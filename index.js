@@ -7,6 +7,8 @@ const { Server } = require("socket.io");
 const io = new Server(server);
 const fs = require('fs')
 const os = require('os');
+const promisify = require('util').promisify;
+const exec = promisify(require('child_process').exec)
 
 class PiStats {
     constructor(root_path = ''){
@@ -64,21 +66,53 @@ class PiStats {
         return {
             temp: temp,
             load: {
-                last_minute: (load_avg[0] * 100 / cpu_num).toFixed(2),
-                last_five_minutes: (load_avg[1] * 100 / cpu_num).toFixed(2),
-                last_fifteen_minutes: (load_avg[2] * 100 / cpu_num).toFixed(2)
+                last_minute: parseFloat((load_avg[0] * 100 / cpu_num).toFixed(2)),
+                last_five_minutes: parseFloat((load_avg[1] * 100 / cpu_num).toFixed(2)),
+                last_fifteen_minutes: parseFloat((load_avg[2] * 100 / cpu_num).toFixed(2))
             }
+        }
+    }
+
+    async diskusage(){
+        let disk_list = [];
+        let used_total = 0;
+        let total_total = 0;
+        const mount_points = ['/', '/boot'];
+
+        for(const mount of mount_points){
+            const { stdout } = await exec(`df -k ${this.root_path}${mount}`);
+            const data = stdout.split('\n')[1].split(/\s+/g)
+            const used = parseInt(data[2] / 1024);
+            const total = parseInt(data[1] / 1024);
+            used_total += used;
+            total_total += total;
+            disk_list.push({
+                mount_point: mount,
+                used: used,
+                total: total
+            });
+        }
+        
+        return {
+            paths: disk_list,
+            used_total: used_total,
+            total_total: total_total
         }
     }
 }
 
 const ps = new PiStats('/')
 
-const homeData = () => {
+const homeData = async () => {
+    const diskusage = await ps.diskusage();
+    const time = ps.time();
+    const system = ps.system();
+    const cpu = ps.cpu();
     return {
-        system: ps.system(),
-        time: ps.time(),
-        cpu: ps.cpu()
+        system: system,
+        time: time,
+        cpu: cpu,
+        diskusage: diskusage
     }
 }
 
@@ -98,9 +132,15 @@ app.get('/:section', (req, res) => {
 
 // SocketIO
 io.on('connection', (socket) => {
-    io.emit('home', homeData());
+    homeData().then(data => {
+            io.emit('home', data);
+        }
+    );
     const home = setInterval(() => {
-        io.emit('home', homeData())
+        homeData().then(data => {
+                io.emit('home', data);
+            }
+        );
     }, 1000);
     socket.on('disconnect', () => {        
         clearInterval(home);

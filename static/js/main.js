@@ -57,6 +57,7 @@ const vm = new Vue({
             this.section = e.target.id.replace('-button', '');
         },
         dataUpdate: function(res){
+            console.log(res);
             if(! this.dataLoaded){
                 this.api.system = res.system;
                 this.api.time = res.time;
@@ -71,7 +72,7 @@ const vm = new Vue({
             //this.api.memory = res.memory;
             this.api.cpu = res.cpu;
             //this.api.netusage = res.netusage;
-            //this.api.diskusage = res.diskusage;            
+            this.api.diskusage = res.diskusage;            
         },
         uptimeUpdate: function(){
             this.uptime.seconds += (this.uptime.seconds != 59) || -59;
