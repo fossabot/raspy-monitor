@@ -14,7 +14,7 @@ You'll need atleast Node.JS 14 runtime :
 ```sh
 npm install
 npm run build
-node build/index.js
+env NODE_ENV=production node build/index.js
 ```
 
 App can be accessed from port 3000
