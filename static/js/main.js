@@ -57,7 +57,6 @@ const vm = new Vue({
             this.section = e.target.id.replace('-button', '');
         },
         dataUpdate: function(res){
-            console.log(res);
             if(! this.dataLoaded){
                 this.api.system = res.system;
                 this.api.time = res.time;
