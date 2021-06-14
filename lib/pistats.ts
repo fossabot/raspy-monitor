@@ -1,7 +1,8 @@
+import { promisify } from 'util';
+import { type, arch, cpus, release, version, EOL, loadavg, hostname } from 'os';
+
 const txt_encoding = 'utf8';
-const { type, arch, cpus, release, version, EOL, loadavg } = require('os');
 const { readFile, readdir } = require('fs').promises;
-const { promisify } = require('util');
 const exec = promisify(require('child_process').exec);
 
 export class PiStats {
@@ -18,7 +19,6 @@ export class PiStats {
     async system(): Promise<object>{
         const cpu_info = await readFile(`${this.root_path}/proc/cpuinfo`, txt_encoding);
         const os_release = await readFile(`${this.root_path}/etc/os-release`, txt_encoding);
-        const hostname = await readFile(`${this.root_path}/proc/sys/kernel/hostname`, txt_encoding);
         let cpu_name = '';
         let model = '';
         let os_name = '';
@@ -46,7 +46,7 @@ export class PiStats {
             uname: {
                 os: type(),
                 arch: arch(),
-                hostname: hostname,
+                hostname: hostname(),
                 kernel_ver: release(),
                 kernel_build: version()
             }
