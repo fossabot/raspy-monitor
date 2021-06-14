@@ -257,7 +257,7 @@ body {
 
 .network {
     display: grid;
-    grid-template-columns: 120px auto auto;
+    grid-template-columns: 120px 1fr 1fr;
     margin: 8px 0;
 }
 
