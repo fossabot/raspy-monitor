@@ -1,5 +1,5 @@
 FROM docker.io/library/node:14-alpine
-LABEL org.opencontainers.image.source https://github.com/lemniskett/raspy-
+LABEL org.opencontainers.image.source https://github.com/lemniskett/raspy-monitor
 WORKDIR /usr/src/app
 RUN set -ex; \
     adduser -S -s /bin/false -h /usr/src/app -u 999 raspy_monitor; \
