@@ -1,22 +1,25 @@
-const express = require('express');
+import express from 'express';
+import { Server } from 'socket.io';
+
+const http = require('http');
 const renderer = require('express-es6-template-engine');
 const app = express();
-const http = require('http');
 const server = http.createServer(app);
-const { Server } = require('socket.io');
 const io = new Server(server);
 const { readFile, readdir } = require('fs').promises;
 const { promisify } = require('util');
-const exec = promisify(require('child_process').exec)
+const exec = promisify(require('child_process').exec);
 const { type, arch, cpus, release, version, EOL } = require('os');
 const txt_encoding = 'utf8';
 
 class PiStats {
-    constructor(root_path = ''){
+    root_path: string;
+
+    constructor(root_path: string){
         this.root_path = root_path;
     }
 
-    async system(){
+    async system(): Promise<object>{
         const cpu_info = await readFile(`${this.root_path}/proc/cpuinfo`, txt_encoding);
         const os_release = await readFile(`${this.root_path}/etc/os-release`, txt_encoding);
         const hostname = await readFile(`${this.root_path}/proc/sys/kernel/hostname`, txt_encoding);
@@ -54,7 +57,7 @@ class PiStats {
         }
     }
 
-    async time(){
+    async time(): Promise<object>{
         const uptime = await readFile(`${this.root_path}/proc/uptime`, txt_encoding);
         const uptime_arr = uptime.split(' ')
         return {
@@ -62,34 +65,34 @@ class PiStats {
         }
     }
 
-    async cpu(){
+    async cpu(): Promise<object>{
         const cpu_num = cpus().length;
         const load_avg = await readFile(`${this.root_path}/proc/loadavg`, txt_encoding);
         const load_avg_arr = load_avg.split(' ');
-        const temp = await readFile(`${this.root_path}/sys/devices/virtual/thermal/thermal_zone0/temp`, txt_encoding) / 1000;
+        const temp = parseInt(await readFile(`${this.root_path}/sys/devices/virtual/thermal/thermal_zone0/temp`, txt_encoding)) / 1000;
         return {
-            temp: temp / 1000,
+            temp: temp,
             load: {
-                last_minute: parseFloat((load_avg_arr[0] * 100 / cpu_num).toFixed(2)),
-                last_five_minutes: parseFloat((load_avg_arr[1] * 100 / cpu_num).toFixed(2)),
-                last_fifteen_minutes: parseFloat((load_avg_arr[2] * 100 / cpu_num).toFixed(2))
+                last_minute: parseFloat((parseInt(load_avg_arr[0]) * 100 / cpu_num).toFixed(2)),
+                last_five_minutes: parseFloat((parseInt(load_avg_arr[1]) * 100 / cpu_num).toFixed(2)),
+                last_fifteen_minutes: parseFloat((parseInt(load_avg_arr[2]) * 100 / cpu_num).toFixed(2))
             }
         }
     }
 
-    async diskUsage(){
+    async diskUsage(): Promise<object>{
         let disk_list = [];
-        let used_total = 0;
-        let total_total = 0;
+        let used_total: number = 0;
+        let total_total: number = 0;
         const mount_points = ['/', '/boot'];
 
         for(const mount of mount_points){
             const { stdout } = await exec(`df -k ${this.root_path}${mount}`);
             const data = stdout.split(EOL)[1].split(/\s+/g)
-            const used = (data[2] / 1024).toFixed(2);
-            const total = (data[1] / 1024).toFixed(2);
-            used_total += used;
-            total_total += total;
+            const used = (parseInt(data[2]) / 1024).toFixed(2);
+            const total = (parseInt(data[1]) / 1024).toFixed(2);
+            used_total += parseInt(used);
+            total_total += parseInt(total);
             disk_list.push({
                 mount_point: mount,
                 used: used,
@@ -104,7 +107,7 @@ class PiStats {
         }
     }
 
-    async netUsage(){
+    async netUsage(): Promise<object>{
         let net_list = [];
         let s_total = 0;
         let r_total = 0;
@@ -115,11 +118,11 @@ class PiStats {
         for(const ifn of net_interfaces){
             if(! ignored_interfaces.includes(ifn)){
                 const s_out = await readFile(`${this.root_path}/sys/class/net/${ifn}/statistics/tx_bytes`, txt_encoding);
-                const s_bytes = (s_out.replace(EOL, '') / 1048576).toFixed(2);
+                const s_bytes = (parseInt(s_out.replace(EOL, '')) / 1048576).toFixed(2);
                 const r_out = await readFile(`${this.root_path}/sys/class/net/${ifn}/statistics/rx_bytes`, txt_encoding);
-                const r_bytes = (r_out.replace(EOL, '') / 1048576).toFixed(2);
-                s_total += s_bytes;
-                r_total += r_bytes;
+                const r_bytes = (parseInt(r_out.replace(EOL, '')) / 1048576).toFixed(2);
+                s_total += parseInt(s_bytes);
+                r_total += parseInt(r_bytes);
                 net_list.push({
                     name: ifn,
                     sent: s_bytes,
@@ -135,7 +138,7 @@ class PiStats {
         }
     }
 
-    async memory(){
+    async memory(): Promise<object>{
         const memory_out = await readFile(`${this.root_path}/proc/meminfo`, txt_encoding);
         const memory_out_arr = memory_out.split(EOL);
         let mem_total = 0;
@@ -199,15 +202,15 @@ app.set('views', './views');
 
 // Routings
 app.use('/static', express.static('static'));
-app.get('/', (req, res) => {
+app.get('/', (req: any, res: any) => {
     res.redirect('/home');
 });
-app.get('/:section', (req, res) => {
+app.get('/:section', (req: any, res: any) => {
     res.render('app', {locals: {section: req.params.section}});
 });
 
 // SocketIO
-io.on('connection', (socket) => {
+io.on('connection', (socket: any) => {
     homeData().then(data => {
         io.emit('home', data);
     });
