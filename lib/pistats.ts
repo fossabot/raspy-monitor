@@ -65,13 +65,14 @@ export class PiStats {
         const cpu_num = cpus().length;
         const load_avg = await readFile(`${this.root_path}/proc/loadavg`, txt_encoding);
         const load_avg_arr = load_avg.split(' ');
+        console.log(load_avg_arr);
         const temp = parseInt(await readFile(`${this.root_path}/sys/devices/virtual/thermal/thermal_zone0/temp`, txt_encoding)) / 1000;
         return {
             temp: temp,
             load: {
-                last_minute: parseFloat((parseInt(load_avg_arr[0]) * 100 / cpu_num).toFixed(2)),
-                last_five_minutes: parseFloat((parseInt(load_avg_arr[1]) * 100 / cpu_num).toFixed(2)),
-                last_fifteen_minutes: parseFloat((parseInt(load_avg_arr[2]) * 100 / cpu_num).toFixed(2))
+                last_minute: (parseFloat(load_avg_arr[0]) * 100 / cpu_num).toFixed(2),
+                last_five_minutes: (parseFloat(load_avg_arr[1]) * 100 / cpu_num).toFixed(2),
+                last_fifteen_minutes: (parseFloat(load_avg_arr[2]) * 100 / cpu_num).toFixed(2)
             }
         }
     }
