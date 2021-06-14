@@ -4,10 +4,15 @@ import { PiStats } from './lib/pistats';
 
 const http = require('http');
 const renderer = require('express-es6-template-engine');
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-const ps = new PiStats('/')
+const ps = new PiStats(
+    process.env.ROOT_PATH || '/',
+    (process.env.MOUNT_POINTS || '/').split(/\s+/g),
+    (process.env.IGNORE_INTERFACES || 'lo').split(/\s+/g)
+);
 
 const homeData = async () => {
     const diskusage = await ps.diskUsage();

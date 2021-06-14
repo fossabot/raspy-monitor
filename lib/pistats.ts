@@ -6,9 +6,13 @@ const exec = promisify(require('child_process').exec);
 
 export class PiStats {
     root_path: string;
+    mount_points: Array<string>;
+    ignore_interfaces: Array<string>;
 
-    constructor(root_path: string){
+    constructor(root_path: string, mount_points: Array<string>, ignore_interfaces: Array<string>){
         this.root_path = root_path;
+        this.mount_points = mount_points;
+        this.ignore_interfaces = ignore_interfaces;
     }
 
     async system(): Promise<object>{
@@ -76,9 +80,8 @@ export class PiStats {
         let disk_list = [];
         let used_total: number = 0;
         let total_total: number = 0;
-        const mount_points = ['/', '/boot'];
 
-        for(const mount of mount_points){
+        for(const mount of this.mount_points){
             const { stdout } = await exec(`df -k ${this.root_path}${mount}`);
             const data = stdout.split(EOL)[1].split(/\s+/g)
             const used = (parseInt(data[2]) / 1024).toFixed(2);
@@ -105,10 +108,9 @@ export class PiStats {
         let r_total = 0;
 
         const net_interfaces = await readdir(`${this.root_path}/sys/class/net`);
-        const ignored_interfaces = ['lo'];
 
         for(const ifn of net_interfaces){
-            if(! ignored_interfaces.includes(ifn)){
+            if(! this.ignore_interfaces.includes(ifn)){
                 const s_out = await readFile(`${this.root_path}/sys/class/net/${ifn}/statistics/tx_bytes`, txt_encoding);
                 const s_bytes = (parseInt(s_out.replace(EOL, '')) / 1048576).toFixed(2);
                 const r_out = await readFile(`${this.root_path}/sys/class/net/${ifn}/statistics/rx_bytes`, txt_encoding);
