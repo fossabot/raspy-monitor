@@ -1,5 +1,6 @@
 # RasPy-Monitor
 [![Build Master](https://github.com/lemniskett/raspy-monitor/actions/workflows/build-master.yml/badge.svg)](https://github.com/lemniskett/raspy-monitor/actions/workflows/build-master.yml)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Flemniskett%2Fraspy-monitor.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Flemniskett%2Fraspy-monitor?ref=badge_shield)
 
 A monitoring tool for Raspberry Pi written with Express, currently it's not yet done as not everything is implemented and things are constantly changing and breaking, here's a list of TODOs:
 
@@ -36,3 +37,7 @@ Configuration currently only can be done with environment variables :
 ![Screenshot 1](imgs/screenshot-1.png)
 
 ![Screenshot 2](imgs/screenshot-2.png)
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Flemniskett%2Fraspy-monitor.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Flemniskett%2Fraspy-monitor?ref=badge_large)
