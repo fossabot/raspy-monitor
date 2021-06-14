@@ -1,0 +1,33 @@
+{
+  "name": "raspy-monitor",
+  "version": "0.1.0",
+  "license": "LGPL-2.1-only",
+  "description": "Monitoring tool for Raspberry Pi",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.ts",
+    "build": "tsc --project ./",
+    "clean": "rm -rf raspy_monitor.db ./build ./node_modules"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lemniskett/raspy-monitor.git"
+  },
+  "author": "lemniskett",
+  "bugs": {
+    "url": "https://github.com/lemniskett/raspy-monitor/issues"
+  },
+  "homepage": "https://github.com/lemniskett/raspy-monitor#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-es6-template-engine": "^2.2.3",
+    "socket.io": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.12",
+    "@types/node": "^15.12.2",
+    "nodemon": "^2.0.7",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.2"
+  }
+}

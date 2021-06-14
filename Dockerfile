@@ -1,21 +1,16 @@
-FROM docker.io/library/python:3.9-slim
+FROM docker.io/library/node:14-alpine
+LABEL org.opencontainers.image.source https://github.com/lemniskett/raspy-
+ENV NODE_ENV production
 WORKDIR /usr/src/app
-COPY ./requirements.txt .
+COPY . .
 RUN set -ex; \
-    useradd \
-        --system \
-        --shell /bin/false \
-        --home-dir /usr/src/app \
-        --no-user-group \
-        --uid 999 \
-        raspy_monitor; \
+    adduser -S -s /bin/false -h /usr/src/app -u 999 raspy_monitor; \
     mkdir -p /config; \
     chown -R raspy_monitor /usr/src/app /config; \
-    [ "$(uname -m)" = "armv7l" ] && apt update && apt install -y gcc g++; \
-    pip install -r requirements.txt; \
-    [ "$(uname -m)" = "armv7l" ] && apt purge --autoremove -y gcc g++ || true;
-STOPSIGNAL SIGINT
-ENV DB_PATH "/config/raspy_monitor.db"
-COPY --chown=raspy_monitor:root . .
+    npm install; \
+    npm run build; \
+    npm prune --production; \
+    rm -rf .git
 USER raspy_monitor
-CMD python3 app.py
+EXPOSE 3000
+CMD node build/index.js

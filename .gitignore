@@ -1,5 +1,4 @@
-/virtualenv/
-/__pycache__/
-/modules/__pycache__/
-/.vscode/
-/raspy_monitor.db
+node_modules/
+.vscode/
+raspy_monitor.db
+build/

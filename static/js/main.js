@@ -19,8 +19,7 @@ Vue.component('memory', {
 })
 
 const vm = new Vue({
-    el: '.container',
-    delimiters: ['[[', ']]'],
+    el: '.container',    
     data: {
         dataLoaded: false,
         section: '',
@@ -72,14 +71,7 @@ const vm = new Vue({
             this.api.memory = res.memory;
             this.api.cpu = res.cpu;
             this.api.netusage = res.netusage;
-            this.api.diskusage = res.diskusage;
-        },
-        statisticsInit: function(res){
-            console.log(res);
-            this.socket.off('statistics init');
-        },
-        statisticsUpdate: function(res){
-            console.log(res);
+            this.api.diskusage = res.diskusage;            
         },
         uptimeUpdate: function(){
             this.uptime.seconds += (this.uptime.seconds != 59) || -59;
@@ -94,10 +86,6 @@ const vm = new Vue({
     created: function(){
         this.socket = io();
         this.socket.on('home', this.dataUpdate);
-        this.socket.on('statistics init', this.statisticsInit);
-        this.socket.on('statistics update', this.statisticsUpdate);
-        this.socket.emit('home', '');
-        this.socket.emit('statistics init', '');
         this.backgroundJob();
         this.uptimeJobInterval = setInterval(this.uptimeUpdate, 1000);
         this.backgroundJobInterval = setInterval(this.backgroundJob, 5000);
