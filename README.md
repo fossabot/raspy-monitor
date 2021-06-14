@@ -1,4 +1,6 @@
 # RasPy-Monitor
+[![Build Master](https://github.com/lemniskett/raspy-monitor/actions/workflows/build-master.yml/badge.svg)](https://github.com/lemniskett/raspy-monitor/actions/workflows/build-master.yml)
+
 A monitoring tool for Raspberry Pi written with Express, currently it's not yet done as not everything is implemented and things are constantly changing and breaking, here's a list of TODOs:
 
 1. Display statistics from the last 24 hours.
