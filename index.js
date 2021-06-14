@@ -3,9 +3,9 @@ const renderer = require('express-es6-template-engine');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
-const { Server } = require("socket.io");
+const { Server } = require('socket.io');
 const io = new Server(server);
-const fs = require('fs')
+const readFile = require('fs').promises.readFile;
 const os = require('os');
 const promisify = require('util').promisify;
 const exec = promisify(require('child_process').exec)
@@ -15,14 +15,14 @@ class PiStats {
         this.root_path = root_path;
     }
 
-    system(){
-        const cpu_info = fs.readFileSync(`${this.root_path}/proc/cpuinfo`, 'utf8').split('\n');
-        const os_release = fs.readFileSync(`${this.root_path}/etc/os-release`, 'utf8').split('\n');
+    async system(){
+        const cpu_info = await readFile(`${this.root_path}/proc/cpuinfo`, 'utf8');
+        const os_release = await readFile(`${this.root_path}/etc/os-release`, 'utf8');
         let cpu_name = '';
         let model = '';
         let os_name = '';
-
-        for(const line of cpu_info){
+        
+        for(const line of cpu_info.split('\n')){
             if(line.match(/^Hardware/)){
                 cpu_name = line.replace('Hardware\t: ', '').replace('\n', '');
             }
@@ -31,7 +31,7 @@ class PiStats {
             }
         }
         
-        for(const line of os_release){
+        for(const line of os_release.split('\n')){
             if(line.match(/^PRETTY_NAME/)){
                 os_name = line.replace(/"/g, '').replace('PRETTY_NAME=', '').replace('\n', '');
                 break;
@@ -52,23 +52,24 @@ class PiStats {
         }
     }
 
-    time(){
-        const uptime = parseInt(fs.readFileSync(`${this.root_path}/proc/uptime`, 'utf8').split(' ')[0]);
+    async time(){
+        const uptime = await readFile(`${this.root_path}/proc/uptime`, 'utf8');
         return {
-            uptime: uptime
+            uptime: parseInt(uptime.split(' ')[0])
         }
     }
 
-    cpu(){
+    async cpu(){
         const cpu_num = os.cpus().length;
-        const load_avg = fs.readFileSync(`${this.root_path}/proc/loadavg`, 'utf8').split(' ');
-        const temp = fs.readFileSync(`${this.root_path}/sys/devices/virtual/thermal/thermal_zone0/temp`, 'utf8') / 1000;
+        const load_avg = await readFile(`${this.root_path}/proc/loadavg`, 'utf8');
+        const load_avg_arr = load_avg.split(' ');
+        const temp = await readFile(`${this.root_path}/sys/devices/virtual/thermal/thermal_zone0/temp`, 'utf8') / 1000;
         return {
-            temp: temp,
+            temp: temp / 1000,
             load: {
-                last_minute: parseFloat((load_avg[0] * 100 / cpu_num).toFixed(2)),
-                last_five_minutes: parseFloat((load_avg[1] * 100 / cpu_num).toFixed(2)),
-                last_fifteen_minutes: parseFloat((load_avg[2] * 100 / cpu_num).toFixed(2))
+                last_minute: parseFloat((load_avg_arr[0] * 100 / cpu_num).toFixed(2)),
+                last_five_minutes: parseFloat((load_avg_arr[1] * 100 / cpu_num).toFixed(2)),
+                last_fifteen_minutes: parseFloat((load_avg_arr[2] * 100 / cpu_num).toFixed(2))
             }
         }
     }
@@ -105,9 +106,9 @@ const ps = new PiStats('/')
 
 const homeData = async () => {
     const diskusage = await ps.diskusage();
-    const time = ps.time();
-    const system = ps.system();
-    const cpu = ps.cpu();
+    const time = await ps.time();
+    const system = await ps.system();
+    const cpu = await ps.cpu();
     return {
         system: system,
         time: time,
@@ -133,14 +134,12 @@ app.get('/:section', (req, res) => {
 // SocketIO
 io.on('connection', (socket) => {
     homeData().then(data => {
-            io.emit('home', data);
-        }
-    );
+        io.emit('home', data);
+    });
     const home = setInterval(() => {
         homeData().then(data => {
-                io.emit('home', data);
-            }
-        );
+            io.emit('home', data);
+        });
     }, 1000);
     socket.on('disconnect', () => {        
         clearInterval(home);
