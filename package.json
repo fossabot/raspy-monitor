@@ -1,6 +1,7 @@
 {
   "name": "raspy-monitor",
   "version": "0.1.0",
+  "license": "LGPL-2.1-only",
   "description": "Monitoring tool for Raspberry Pi",
   "main": "index.js",
   "scripts": {
