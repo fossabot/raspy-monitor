@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.ts",
-    "build": "tsc --project ./"
+    "build": "tsc --project ./",
+    "clean": "rm -rf raspy_monitor.db ./build ./node_modules"
   },
   "repository": {
     "type": "git",
